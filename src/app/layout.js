@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
         <header className="site-header">
           <a href="/" className="site-logo">
             <div className="gogo-dot" />
-            <span>JUGGLER LAB</span>
+            <span>Juggler Lab</span>
           </a>
           <nav className="site-nav">
             <a href="/">ツール</a>
