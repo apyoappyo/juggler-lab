@@ -24,7 +24,7 @@ export default function Home() {
           <div className="tool-grid">
             <a href="/tools/setting-analyzer" className="tool-card">
               <h3>設定判別ツール</h3>
-              <p>ベイズ推定で全8機種の設定確率を算出</p>
+              <p>ゲーム数・BB・RBから全8機種の設定確率を算出</p>
             </a>
             <div className="tool-card disabled">
               <h3>期待値計算<span className="coming-soon-badge">準備中</span></h3>
