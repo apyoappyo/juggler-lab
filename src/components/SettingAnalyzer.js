@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { MACHINES, DENOM } from '@/data/machines';
+import { useState, useCallback, useEffect } from 'react';
+import { loadMachines } from '@/lib/loadMachines';
 
 function logFactorial(n) {
   if (n <= 1) return 0;
@@ -18,12 +18,11 @@ function logBinomialPMF(k, n, p) {
 }
 
 // ゲーム数・BB・RBのみで判別
-function analyze({ totalG, bigCount, regCount, machineKey }) {
-  const m = MACHINES[machineKey];
+function analyze({ totalG, bigCount, regCount, m }) {
   const logL = [];
   for (let s = 0; s < 6; s++) {
-    const pBig = m.big[s] / DENOM;
-    const pReg = m.reg[s] / DENOM;
+    const pBig = m.pBig[s];
+    const pReg = m.pReg[s];
     logL.push(
       Math.log(1 / 6)
       + logBinomialPMF(bigCount, totalG, pBig)
@@ -37,14 +36,22 @@ function analyze({ totalG, bigCount, regCount, machineKey }) {
 }
 
 const S_COLORS = ['#888888', '#999999', '#4a9050', '#d49500', '#e8611e', '#c8102e'];
-const machineKeys = Object.keys(MACHINES);
-
 export default function SettingAnalyzer({ showSpecTable = true }) {
-  const [machine, setMachine] = useState(machineKeys[0]);
+  const [machines, setMachines] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [machine, setMachine] = useState('');
   const [totalG, setTotalG] = useState('');
   const [bigCount, setBigCount] = useState('');
   const [regCount, setRegCount] = useState('');
   const [results, setResults] = useState(null);
+
+  useEffect(() => {
+    loadMachines()
+      .then(list => { setMachines(list); setMachine(list[0].key); })
+      .catch(e => setLoadError(e.message));
+  }, []);
+
+  const current = machines?.find(m => m.key === machine);
 
   const runAnalysis = useCallback(() => {
     const g = parseInt(totalG) || 0;
@@ -58,12 +65,20 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
       alert('ボーナス回数が総ゲーム数を超えています');
       return;
     }
-    const posteriors = analyze({ totalG: g, bigCount: b, regCount: r, machineKey: machine });
-    setResults({ posteriors, totalG: g, bigCount: b, regCount: r, machine });
-  }, [totalG, bigCount, regCount, machine]);
+    if (!current) return;
+    const posteriors = analyze({ totalG: g, bigCount: b, regCount: r, m: current });
+    setResults({ posteriors, totalG: g, bigCount: b, regCount: r, m: current });
+  }, [totalG, bigCount, regCount, current]);
 
   const numProps = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*', min: '0' };
-  const fmtRate = (rand) => `1/${(DENOM / rand).toFixed(1)}`;
+  const fmtRate = (p) => `1/${(1 / p).toFixed(1)}`;
+
+  if (loadError) {
+    return <div className="form-section load-msg error">機種データの読み込みに失敗しました：{loadError}</div>;
+  }
+  if (!machines) {
+    return <div className="form-section load-msg">機種データを読み込み中…</div>;
+  }
 
   return (
     <>
@@ -75,8 +90,8 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
           value={machine}
           onChange={e => { setMachine(e.target.value); setResults(null); }}
         >
-          {machineKeys.map(key => (
-            <option key={key} value={key}>{MACHINES[key].name}</option>
+          {machines.map(m => (
+            <option key={m.key} value={m.key}>{m.name}</option>
           ))}
         </select>
       </div>
@@ -104,7 +119,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
       </div>
 
       {results && (() => {
-        const m = MACHINES[results.machine];
+        const m = results.m;
         const { posteriors } = results;
         const maxProb = Math.max(...posteriors);
         const maxIdx = posteriors.indexOf(maxProb);
@@ -166,9 +181,9 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
                   {[0, 1, 2, 3, 4, 5].map(i => (
                     <tr key={i} className={i === maxIdx ? 'top' : ''}>
                       <td style={{ fontWeight: 700, color: S_COLORS[i] }}>設定{i + 1}</td>
-                      <td>{fmtRate(m.big[i])}</td>
-                      <td>{fmtRate(m.reg[i])}</td>
-                      <td style={{ fontWeight: 700 }}>{fmtRate(m.big[i] + m.reg[i])}</td>
+                      <td>{fmtRate(m.pBig[i])}</td>
+                      <td>{fmtRate(m.pReg[i])}</td>
+                      <td style={{ fontWeight: 700 }}>{fmtRate(m.pBig[i] + m.pReg[i])}</td>
                     </tr>
                   ))}
                 </tbody>
