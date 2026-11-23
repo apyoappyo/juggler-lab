@@ -294,3 +294,58 @@ a:visited { color: var(--link-visited); }
 /* データ読み込み表示 */
 .load-msg { text-align: center; color: var(--text-secondary); font-size: 0.85rem; padding: 32px 14px; }
 .load-msg.error { color: var(--red); }
+
+/* 任意入力：開閉パネル */
+.optional-section .form-label { margin-bottom: 8px; }
+.collapsible { border: 1px solid var(--border); border-radius: 3px; background: var(--white); }
+.collapsible + .collapsible { margin-top: 6px; }
+.collapsible-head {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; background: #fafafa; border: none; border-radius: 3px;
+  font-family: inherit; font-size: 0.85rem; font-weight: 700; color: var(--text);
+  cursor: pointer; text-align: left;
+}
+.collapsible.open .collapsible-head { border-bottom: 1px solid var(--border-light); border-radius: 3px 3px 0 0; }
+.collapsible-title { flex: 1; }
+.collapsible-badge {
+  font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  background: #eeeeee; color: var(--text-secondary);
+}
+.collapsible-badge.active { background: var(--red-light); color: var(--red-dark); }
+.collapsible-chevron {
+  width: 8px; height: 8px; border-right: 2px solid var(--red); border-bottom: 2px solid var(--red);
+  transform: rotate(45deg); transition: transform 0.15s; margin: 0 4px 3px;
+}
+.collapsible.open .collapsible-chevron { transform: rotate(-135deg); margin-bottom: -3px; }
+.collapsible-body { padding: 14px 12px 12px; }
+
+/* ホールの設定配分 */
+.hall-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.hall-preset {
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 14px;
+  background: var(--white); font-family: inherit; font-size: 0.75rem; color: var(--text); cursor: pointer;
+}
+.hall-preset:hover { border-color: var(--red); }
+.hall-preset.active { background: var(--red); border-color: var(--red-dark); color: var(--white); font-weight: 700; }
+
+.hall-labels { display: grid; grid-template-columns: repeat(6, 1fr); margin-bottom: 8px; }
+.hall-label { display: flex; flex-direction: column; align-items: center; line-height: 1.25; }
+.hall-label-s { font-size: 0.66rem; font-weight: 700; }
+.hall-label-f { font-size: 0.95rem; font-weight: 700; }
+
+.hall-track {
+  position: relative; display: flex; height: 14px; border-radius: 7px;
+  background: #e8e8e8; margin: 10px 11px 4px; touch-action: none;
+}
+.hall-seg { height: 100%; }
+.hall-seg:first-child { border-radius: 7px 0 0 7px; }
+.hall-seg:last-child { border-radius: 0 7px 7px 0; }
+.hall-handle {
+  position: absolute; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px;
+  border-radius: 50%; background: var(--white); border: 2px solid var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: grab; touch-action: none; padding: 0;
+}
+.hall-handle::before { content: ''; position: absolute; inset: -10px; } /* 指で押しやすいように当たり判定を広げる */
+.hall-handle:active { cursor: grabbing; transform: scale(1.12); }
+.hall-handle:focus-visible { outline: 3px solid rgba(200,16,46,0.4); outline-offset: 2px; }
+.hall-scale { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); margin: 0 11px; }

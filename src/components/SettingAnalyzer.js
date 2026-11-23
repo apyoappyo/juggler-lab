@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { loadMachines } from '@/lib/loadMachines';
+import HallDistribution, { DEFAULT_WEIGHTS, STEPS, S_COLORS, presetName } from './HallDistribution';
+import Collapsible from './Collapsible';
 
 function logFactorial(n) {
   if (n <= 1) return 0;
@@ -17,14 +19,14 @@ function logBinomialPMF(k, n, p) {
     + k * Math.log(p) + (n - k) * Math.log(1 - p);
 }
 
-// ゲーム数・BB・RBのみで判別
-function analyze({ totalG, bigCount, regCount, m }) {
+// ゲーム数・BB・RBで判別。weights＝ホールの設定配分（60分割、合計60）＝事前確率
+function analyze({ totalG, bigCount, regCount, m, weights }) {
   const logL = [];
   for (let s = 0; s < 6; s++) {
     const pBig = m.pBig[s];
     const pReg = m.pReg[s];
     logL.push(
-      Math.log(1 / 6)
+      Math.log(weights[s] / STEPS)  // 0/60の設定は -Infinity → 0%
       + logBinomialPMF(bigCount, totalG, pBig)
       + logBinomialPMF(regCount, totalG, pReg)
     );
@@ -35,7 +37,6 @@ function analyze({ totalG, bigCount, regCount, m }) {
   return exps.map(e => e / total);
 }
 
-const S_COLORS = ['#888888', '#999999', '#4a9050', '#d49500', '#e8611e', '#c8102e'];
 export default function SettingAnalyzer({ showSpecTable = true }) {
   const [machines, setMachines] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -44,6 +45,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
   const [bigCount, setBigCount] = useState('');
   const [regCount, setRegCount] = useState('');
   const [results, setResults] = useState(null);
+  const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
 
   useEffect(() => {
     loadMachines()
@@ -66,9 +68,12 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
       return;
     }
     if (!current) return;
-    const posteriors = analyze({ totalG: g, bigCount: b, regCount: r, m: current });
-    setResults({ posteriors, totalG: g, bigCount: b, regCount: r, m: current });
+    setResults({ totalG: g, bigCount: b, regCount: r, m: current });
   }, [totalG, bigCount, regCount, current]);
+
+  // 配分を動かしたら、表示中の結果もその場で計算し直す
+  const shown = results && { ...results, posteriors: analyze({ ...results, weights }) };
+  const distName = presetName(weights);
 
   const numProps = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*', min: '0' };
   const fmtRate = (p) => `1/${(1 / p).toFixed(1)}`;
@@ -114,11 +119,19 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
         </div>
       </div>
 
+      <div className="form-section optional-section">
+        <div className="form-label">任意入力</div>
+        <Collapsible title="ホールの設定配分" badge={distName} badgeActive={distName !== '設定均等'}>
+          <HallDistribution weights={weights} onChange={setWeights} />
+        </Collapsible>
+      </div>
+
       <div className="form-section" style={{ borderBottom: 'none' }}>
         <button className="btn-primary" onClick={runAnalysis}>判 定 開 始</button>
       </div>
 
-      {results && (() => {
+      {shown && (() => {
+        const results = shown;
         const m = results.m;
         const { posteriors } = results;
         const maxProb = Math.max(...posteriors);
@@ -144,7 +157,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
                     <div className="bar-meta">
                       <span className="bar-label" style={{ color: S_COLORS[i] }}>設定{i + 1}</span>
                       <span className="bar-pct" style={{ color: S_COLORS[i] }}>
-                        {pct < 0.1 ? pct.toFixed(2) : pct < 1 ? pct.toFixed(1) : Math.round(pct)}%
+                        {pct === 0 ? 0 : pct < 0.1 ? pct.toFixed(2) : pct < 1 ? pct.toFixed(1) : Math.round(pct)}%
                       </span>
                     </div>
                     <div className="bar-track">
@@ -169,6 +182,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
                 {results.totalG < 2000 && '※ 2000G未満のため信頼性は低め'}
                 {results.totalG >= 2000 && results.totalG < 5000 && '傾向は見えるが確定的ではありません'}
                 {results.totalG >= 5000 && '十分なサンプル数'}
+                {distName !== '設定均等' && ` ／ 設定配分「${distName}」を反映`}
               </div>
             </div>
 
