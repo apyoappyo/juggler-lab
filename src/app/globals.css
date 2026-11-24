@@ -348,7 +348,9 @@ a:visited { color: var(--link-visited); }
   border-radius: 50%; background: var(--white); border: 2px solid var(--text);
   box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: grab; touch-action: none; padding: 0;
 }
-.hall-handle::before { content: ''; position: absolute; inset: -10px; } /* 指で押しやすいように当たり判定を広げる */
-.hall-handle:active { cursor: grabbing; transform: scale(1.12); }
+/* 当たり判定はバー全体（.hall-hit）で取る。つまみ自体はクリックを受けない */
+.hall-hit { padding: 12px 0; margin: -12px 0; touch-action: none; cursor: pointer; }
+.hall-handle { pointer-events: none; }
+.hall-handle:focus { transform: scale(1.12); }
 .hall-handle:focus-visible { outline: 3px solid rgba(200,16,46,0.4); outline-offset: 2px; }
 .hall-scale { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); margin: 0 11px; }

@@ -47,19 +47,27 @@ export default function HallDistribution({ weights, onChange }) {
     return Math.round(((e.clientX - rect.left) / rect.width) * STEPS);
   };
 
-  const startDrag = (idx) => (e) => {
+  // バーのどこを押しても「押した位置に一番近いつまみ」を掴む
+  // （つまみ同士が近いと当たり判定が重なって、隣のつまみを掴んでしまうのを防ぐ）
+  const startDrag = (e) => {
+    if (e.button != null && e.button !== 0) return;
     e.preventDefault();
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
-    // 同じ位置につまみが重なっているときは、引っ張った方向で動かすつまみを決める
-    const start = handles[idx];
-    const stacked = handles.map((h, i) => (h === start ? i : -1)).filter(i => i >= 0);
-    let target = stacked.length > 1 ? null : idx;
+    const start = posFromEvent(e);
+    const exact = (e.clientX - trackRef.current.getBoundingClientRect().left) / trackRef.current.getBoundingClientRect().width * STEPS;
+    const dist = handles.map(h => Math.abs(h - exact));
+    const nearest = Math.min(...dist);
+    const candidates = dist.map((d, i) => (d - nearest < 0.5 ? i : -1)).filter(i => i >= 0);
+    // 候補が1つならすぐ決定。同じ位置に重なっているときは引っ張った方向で決める
+    let target = candidates.length === 1 ? candidates[0] : null;
+    if (target !== null) el.querySelectorAll('.hall-handle')[target]?.focus({ preventScroll: true });
     const onMove = (ev) => {
       const pos = posFromEvent(ev);
       if (target === null) {
         if (pos === start) return;
-        target = pos < start ? stacked[0] : stacked[stacked.length - 1];
+        target = pos < start ? candidates[0] : candidates[candidates.length - 1];
+        el.querySelectorAll('.hall-handle')[target]?.focus({ preventScroll: true });
       }
       moveHandle(target, pos);
     };
@@ -105,6 +113,7 @@ export default function HallDistribution({ weights, onChange }) {
         ))}
       </div>
 
+      <div className="hall-hit" onPointerDown={startDrag}>
       <div className="hall-track" ref={trackRef}>
         {weights.map((w, i) => (
           <div key={i} className="hall-seg" style={{ width: `${(w / STEPS) * 100}%`, background: S_COLORS[i] }} />
@@ -115,7 +124,6 @@ export default function HallDistribution({ weights, onChange }) {
             type="button"
             className="hall-handle"
             style={{ left: `${(h / STEPS) * 100}%` }}
-            onPointerDown={startDrag(i)}
             onKeyDown={onKey(i)}
             role="slider"
             aria-label={`設定${i + 1}と設定${i + 2}の境目`}
@@ -124,6 +132,7 @@ export default function HallDistribution({ weights, onChange }) {
             aria-valuenow={h}
           />
         ))}
+      </div>
       </div>
       <div className="hall-scale"><span>0</span><span>60</span></div>
     </div>
