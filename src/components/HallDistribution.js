@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 export const STEPS = 60;
 // 設定1〜6：青・水色・緑・黄色・オレンジ・赤
@@ -31,16 +31,21 @@ const toWeights = h => [h[0], ...h.slice(1).map((v, i) => v - h[i]), STEPS - h[4
 export default function HallDistribution({ weights, onChange }) {
   const trackRef = useRef(null);
   const handles = toHandles(weights);
+  // ドラッグ中も常に最新の配分を参照する（古い値と比べると出発点に戻れなくなる）
+  const latest = useRef(weights);
+  useEffect(() => { latest.current = weights; }, [weights]);
 
   const moveHandle = useCallback((idx, pos) => {
-    const h = toHandles(weights);
+    const h = toHandles(latest.current);
     const min = idx === 0 ? 0 : h[idx - 1];
     const max = idx === 4 ? STEPS : h[idx + 1];
     const next = Math.max(min, Math.min(max, pos));
     if (next === h[idx]) return;
     h[idx] = next;
-    onChange(toWeights(h));
-  }, [weights, onChange]);
+    const w = toWeights(h);
+    latest.current = w; // 次のpointermoveが再描画より先に来ても正しく比べられるように
+    onChange(w);
+  }, [onChange]);
 
   const posFromEvent = (e) => {
     const rect = trackRef.current.getBoundingClientRect();
