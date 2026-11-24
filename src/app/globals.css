@@ -331,7 +331,10 @@ a:visited { color: var(--link-visited); }
 .hall-labels { display: grid; grid-template-columns: repeat(6, 1fr); margin-bottom: 8px; }
 .hall-label { display: flex; flex-direction: column; align-items: center; line-height: 1.25; }
 .hall-label-s { font-size: 0.66rem; font-weight: 700; }
-.hall-label-f { font-size: 0.95rem; font-weight: 700; }
+.hall-label { flex-flow: row wrap; justify-content: center; column-gap: 2px; text-align: center; }
+.hall-label-s { flex-basis: 100%; }
+.hall-label-f { font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+.hall-label-p { font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
 
 .hall-track {
   position: relative; display: flex; height: 14px; border-radius: 7px;

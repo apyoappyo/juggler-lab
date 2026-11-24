@@ -3,7 +3,8 @@
 import { useRef, useCallback } from 'react';
 
 export const STEPS = 60;
-export const S_COLORS = ['#888888', '#999999', '#4a9050', '#d49500', '#e8611e', '#c8102e'];
+// 設定1〜6：青・水色・緑・黄色・オレンジ・赤
+export const S_COLORS = ['#1f5fd6', '#22a6e0', '#2e9e4f', '#e0b000', '#f07a1a', '#d81b2c'];
 
 export const PRESETS = [
   { name: '設定均等', w: [10, 10, 10, 10, 10, 10] },
@@ -14,13 +15,9 @@ export const PRESETS = [
 ];
 export const DEFAULT_WEIGHTS = PRESETS[0].w;
 
-const gcd = (a, b) => (b ? gcd(b, a % b) : a);
-export function fraction(k) {
-  if (k === 0) return '0';
-  if (k === STEPS) return '1';
-  const g = gcd(k, STEPS);
-  return `${k / g}/${STEPS / g}`;
-}
+export const fraction = (k) => `${k}/${STEPS}`;
+// 26.666… → 26.7、10 → 10
+export const percent = (k) => `${Number(((k / STEPS) * 100).toFixed(1))}%`;
 
 export function presetName(w) {
   const p = PRESETS.find(p => p.w.every((v, i) => v === w[i]));
@@ -103,6 +100,7 @@ export default function HallDistribution({ weights, onChange }) {
           <div key={i} className="hall-label" style={{ color: S_COLORS[i] }}>
             <span className="hall-label-s">設定{i + 1}</span>
             <span className="hall-label-f">{fraction(w)}</span>
+            <span className="hall-label-p">（{percent(w)}）</span>
           </div>
         ))}
       </div>
