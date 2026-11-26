@@ -141,7 +141,7 @@ export default function HallDistribution({ weights, onChange, custom = [], onSav
                 disabled={!w}
                 onClick={() => w && onChange([...w])}
               >
-                {customName(i)}{!w && <span className="hall-mine-empty">（未保存）</span>}
+                {customName(i)}
               </button>
               <button
                 type="button"
@@ -187,7 +187,18 @@ export default function HallDistribution({ weights, onChange, custom = [], onSav
         ))}
       </div>
       </div>
-      <div className="hall-scale"><span>0</span><span>60</span></div>
+      {/* 目盛り：1目盛りごとに細線、5ごとに中線、10ごとに太線＋数字 */}
+      <div className="hall-ticks" aria-hidden="true">
+        {Array.from({ length: STEPS + 1 }, (_, k) => (
+          <span
+            key={k}
+            className={`hall-tick ${k % 10 === 0 ? 'major' : k % 5 === 0 ? 'mid' : ''}`}
+            style={{ left: `${(k / STEPS) * 100}%` }}
+          >
+            {k % 10 === 0 && <span className="hall-tick-num">{k}</span>}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

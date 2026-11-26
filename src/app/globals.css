@@ -353,7 +353,11 @@ a:visited { color: var(--link-visited); }
 .hall-handle { pointer-events: none; }
 .hall-handle:focus { transform: scale(1.12); }
 .hall-handle:focus-visible { outline: 3px solid rgba(200,16,46,0.4); outline-offset: 2px; }
-.hall-scale { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); margin: 0 11px; }
+.hall-ticks { position: relative; height: 24px; margin: 2px 11px 0; }
+.hall-tick { position: absolute; top: 0; width: 1px; height: 4px; background: #c4c4c4; transform: translateX(-0.5px); }
+.hall-tick.mid { height: 7px; background: #9a9a9a; }
+.hall-tick.major { height: 10px; background: #666666; }
+.hall-tick-num { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); font-size: 0.62rem; color: var(--text-secondary); line-height: 1; }
 
 /* 自分のプリセット */
 .hall-mine { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 16px; padding-top: 8px; border-top: 1px dashed var(--border-light); }
@@ -361,7 +365,6 @@ a:visited { color: var(--link-visited); }
 @media (min-width: 520px) { .hall-mine-item { flex-basis: auto; } }
 .hall-preset:disabled { color: var(--text-muted); background: #f7f7f7; border-style: dashed; cursor: default; }
 .hall-preset:disabled:hover { border-color: var(--border); }
-.hall-mine-empty { font-size: 0.66rem; margin-left: 2px; }
 .hall-save {
   padding: 6px 10px; border: 1px solid var(--red); border-radius: 14px; background: var(--white);
   color: var(--red); font-family: inherit; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
