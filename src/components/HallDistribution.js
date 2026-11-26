@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 
 export const STEPS = 60;
 // 設定1〜6：青・水色・緑・黄色・オレンジ・赤
@@ -19,16 +19,22 @@ export const fraction = (k) => `${k}/${STEPS}`;
 // 26.666… → 26.7、10 → 10
 export const percent = (k) => `${Number(((k / STEPS) * 100).toFixed(1))}%`;
 
-export function presetName(w) {
-  const p = PRESETS.find(p => p.w.every((v, i) => v === w[i]));
-  return p ? p.name : 'カスタム';
+const same = (a, b) => a && b && a.every((v, i) => v === b[i]);
+export const customName = (i) => `プリセット${i + 1}`;
+
+// 今の配分の名前。決まったプリセット → 自分のプリセット → カスタム の順で探す
+export function presetName(w, custom = []) {
+  const p = PRESETS.find(p => same(p.w, w));
+  if (p) return p.name;
+  const i = custom.findIndex(c => same(c, w));
+  return i >= 0 ? customName(i) : 'カスタム';
 }
 
 // 6つの割合 ⇔ 5つのつまみの位置（累積和）
 const toHandles = w => w.slice(0, 5).reduce((acc, v) => [...acc, (acc.at(-1) ?? 0) + v], []);
 const toWeights = h => [h[0], ...h.slice(1).map((v, i) => v - h[i]), STEPS - h[4]];
 
-export default function HallDistribution({ weights, onChange }) {
+export default function HallDistribution({ weights, onChange, custom = [], onSaveCustom }) {
   const trackRef = useRef(null);
   const handles = toHandles(weights);
   // ドラッグ中も常に最新の配分を参照する（古い値と比べると出発点に戻れなくなる）
@@ -91,7 +97,23 @@ export default function HallDistribution({ weights, onChange }) {
     if (d) { e.preventDefault(); moveHandle(idx, handles[idx] + d); }
   };
 
-  const current = presetName(weights);
+  const current = presetName(weights, custom);
+
+  // 保存ボタン：空き or 同じ配分ならすぐ保存。別の配分が入っているときは2回押しで上書き
+  const [saveState, setSaveState] = useState({}); // { [slot]: 'confirm' | 'done' }
+  const timers = useRef({});
+  const flash = (slot, state) => {
+    clearTimeout(timers.current[slot]);
+    setSaveState(s => ({ ...s, [slot]: state }));
+    timers.current[slot] = setTimeout(() => setSaveState(s => ({ ...s, [slot]: undefined })), state === 'confirm' ? 3000 : 1500);
+  };
+  useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
+  const onSave = (slot) => {
+    const existing = custom[slot];
+    if (existing && !same(existing, weights) && saveState[slot] !== 'confirm') { flash(slot, 'confirm'); return; }
+    onSaveCustom?.(slot, weights);
+    flash(slot, 'done');
+  };
 
   return (
     <div className="hall-dist">
@@ -106,6 +128,32 @@ export default function HallDistribution({ weights, onChange }) {
             {p.name}
           </button>
         ))}
+      </div>
+
+      <div className="hall-mine">
+        {custom.map((w, i) => {
+          const st = saveState[i];
+          return (
+            <div key={i} className="hall-mine-item">
+              <button
+                type="button"
+                className={`hall-preset ${same(w, weights) ? 'active' : ''}`}
+                disabled={!w}
+                onClick={() => w && onChange([...w])}
+              >
+                {customName(i)}{!w && <span className="hall-mine-empty">（未保存）</span>}
+              </button>
+              <button
+                type="button"
+                className={`hall-save ${st ?? ''}`}
+                onClick={() => onSave(i)}
+                aria-label={`今の配分を${customName(i)}に保存`}
+              >
+                {st === 'confirm' ? '上書きする？' : st === 'done' ? '保存しました ✓' : '保存'}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="hall-labels">

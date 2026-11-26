@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { loadMachines } from '@/lib/loadMachines';
 import HallDistribution, { DEFAULT_WEIGHTS, STEPS, S_COLORS, presetName } from './HallDistribution';
 import Collapsible from './Collapsible';
+import { useCustomPresets } from '@/lib/customPresets';
 
 function logFactorial(n) {
   if (n <= 1) return 0;
@@ -46,6 +47,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
   const [regCount, setRegCount] = useState('');
   const [results, setResults] = useState(null);
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
+  const [customPresets, saveCustomPreset] = useCustomPresets();
 
   useEffect(() => {
     loadMachines()
@@ -73,7 +75,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
 
   // 配分を動かしたら、表示中の結果もその場で計算し直す
   const shown = results && { ...results, posteriors: analyze({ ...results, weights }) };
-  const distName = presetName(weights);
+  const distName = presetName(weights, customPresets);
 
   const numProps = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*', min: '0' };
   const fmtRate = (p) => `1/${(1 / p).toFixed(1)}`;
@@ -122,7 +124,7 @@ export default function SettingAnalyzer({ showSpecTable = true }) {
       <div className="form-section optional-section">
         <div className="form-label">任意入力</div>
         <Collapsible title="ホールの設定配分" badge={distName} badgeActive={distName !== '設定均等'}>
-          <HallDistribution weights={weights} onChange={setWeights} />
+          <HallDistribution weights={weights} onChange={setWeights} custom={customPresets} onSaveCustom={saveCustomPreset} />
         </Collapsible>
       </div>
 

@@ -320,7 +320,7 @@ a:visited { color: var(--link-visited); }
 .collapsible-body { padding: 14px 12px 12px; }
 
 /* ホールの設定配分 */
-.hall-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.hall-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .hall-preset {
   padding: 6px 10px; border: 1px solid var(--border); border-radius: 14px;
   background: var(--white); font-family: inherit; font-size: 0.75rem; color: var(--text); cursor: pointer;
@@ -354,3 +354,19 @@ a:visited { color: var(--link-visited); }
 .hall-handle:focus { transform: scale(1.12); }
 .hall-handle:focus-visible { outline: 3px solid rgba(200,16,46,0.4); outline-offset: 2px; }
 .hall-scale { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); margin: 0 11px; }
+
+/* 自分のプリセット */
+.hall-mine { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 16px; padding-top: 8px; border-top: 1px dashed var(--border-light); }
+.hall-mine-item { display: flex; align-items: center; gap: 6px; flex-basis: 100%; }
+@media (min-width: 520px) { .hall-mine-item { flex-basis: auto; } }
+.hall-preset:disabled { color: var(--text-muted); background: #f7f7f7; border-style: dashed; cursor: default; }
+.hall-preset:disabled:hover { border-color: var(--border); }
+.hall-mine-empty { font-size: 0.66rem; margin-left: 2px; }
+.hall-save {
+  padding: 6px 10px; border: 1px solid var(--red); border-radius: 14px; background: var(--white);
+  color: var(--red); font-family: inherit; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  min-width: 8.2em; text-align: center; /* 文字が変わっても幅が変わらないように */
+}
+.hall-save:hover { background: var(--red-light); }
+.hall-save.confirm { background: var(--red); color: var(--white); }
+.hall-save.done { border-color: #2e9e4f; color: #2e9e4f; background: #eaf7ee; }
